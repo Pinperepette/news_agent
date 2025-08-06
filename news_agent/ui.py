@@ -4,47 +4,72 @@ import os
 import webbrowser
 import sys
 import select
-import tty
-import termios
+import platform
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
 from rich.text import Text
 
 def get_arrow_input():
-    """Gestisce l'input con supporto per le frecce su macOS/Linux"""
+    """Gestisce l'input con supporto per le frecce cross-platform"""
     console = Console()
     
-    try:
-        fd = sys.stdin.fileno()
-        old_settings = termios.tcgetattr(fd)
-        
+    if platform.system() == "Windows":
         try:
-            tty.setraw(sys.stdin.fileno())
+            import msvcrt
+            ch = msvcrt.getch()
             
-            ch = sys.stdin.read(1)
+            if ch in [b'\xe0', b'\x00']:
+                ch2 = msvcrt.getch()
+                # Codici per le frecce su Windows
+                if ch2 == b'H':
+                    return 'up'
+                elif ch2 == b'P':
+                    return 'down'
+                elif ch2 == b'M':
+                    return 'right'
+                elif ch2 == b'K':
+                    return 'left'
+            
+            return ch.decode('utf-8', errors='ignore').lower()
+            
+        except (ImportError, UnicodeDecodeError):
 
-            if ch == '\x1b':
+            return console.input().strip().lower()
+    
+    else:
+        try:
+            import tty
+            import termios
+            
+            fd = sys.stdin.fileno()
+            old_settings = termios.tcgetattr(fd)
+            
+            try:
+                tty.setraw(sys.stdin.fileno())
+                
+                ch = sys.stdin.read(1)
 
-                ch2 = sys.stdin.read(1)
-                if ch2 == '[':
-                    ch3 = sys.stdin.read(1)
-                    if ch3 == 'A':
-                        return 'up'
-                    elif ch3 == 'B':
-                        return 'down'
-                    elif ch3 == 'C':
-                        return 'right'
-                    elif ch3 == 'D':
-                        return 'left'
-            
-            return ch.lower()
-            
-        finally:
-            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-            
-    except (termios.error, OSError, AttributeError):
-        return console.input().strip().lower()
+                if ch == '\x1b':
+                    ch2 = sys.stdin.read(1)
+                    if ch2 == '[':
+                        ch3 = sys.stdin.read(1)
+                        if ch3 == 'A':
+                            return 'up'
+                        elif ch3 == 'B':
+                            return 'down'
+                        elif ch3 == 'C':
+                            return 'right'
+                        elif ch3 == 'D':
+                            return 'left'
+                
+                return ch.lower()
+                
+            finally:
+                termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+                
+        except (termios.error, OSError, AttributeError, ImportError):
+            return console.input().strip().lower()
 
 def show_table(articles, page, per_page, selected_idx=None, has_serpapi=False):
     os.system('clear' if os.name == 'posix' else 'cls')
@@ -148,15 +173,14 @@ def show_verification_results(verification_data, agent_analysis=None, model_name
     os.system('clear' if os.name == 'posix' else 'cls')
     console = Console()
     
-    # Se è un'analisi multi-agente, formatta diversamente
+
     if agent_analysis and "VERDETTO FINALE" in agent_analysis:
-        # Estrai le parti dell'analisi multi-agente
+
         parts = agent_analysis.split("VERDETTO FINALE:")
         if len(parts) > 1:
             analysis_part = parts[0].strip()
             verdict_part = "VERDETTO FINALE:" + parts[1].strip()
             
-            # Mostra la parte di analisi
             title = "🤖 Analisi Sistema Multi-Agente"
             if model_name:
                 title += f" - {model_name}"
@@ -166,14 +190,14 @@ def show_verification_results(verification_data, agent_analysis=None, model_name
                 border_style="yellow"
             ))
             
-            # Mostra il verdetto finale in un pannello separato
+
             console.print(Panel(
                 verdict_part,
                 title="🎯 VERDETTO FINALE",
                 border_style="red"
             ))
         else:
-            # Fallback se non riesce a separare
+
             title = "🤖 Analisi Sistema Multi-Agente"
             if model_name:
                 title += f" - {model_name}"
@@ -183,7 +207,7 @@ def show_verification_results(verification_data, agent_analysis=None, model_name
                 border_style="yellow"
             ))
     else:
-        # Analisi standard
+
         console.print(Panel(
             verification_data.get('verification_summary', 'Nessun risultato'),
             title="📊 Risultati Verifica",
