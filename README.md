@@ -33,7 +33,7 @@ Not only can you browse the latest news, but you can launch **multiple AI agents
   - 100% local processing with Ollama, no external APIs needed
   - Cloud options available for higher quality analysis
 - **Designed for hacking/extending:** config/code separation, easy to customize
-- **Works on Linux, macOS, WSL, Windows Terminal**
+- **Cross-Platform Support**: Works on Windows, macOS, Linux, and WSL
 
 ---
 
@@ -50,9 +50,29 @@ Clone the repo and install locally:
 git clone https://github.com/Pinperepette/news_agent.git
 cd news_agent
 pip install .
-
-news-agent
 ```
+
+### 🚀 Running the Application
+
+**Windows:**
+```cmd
+python -m news_agent.main
+```
+
+**macOS/Linux/WSL:**
+```bash
+news-agent
+# oppure
+python -m news_agent.main
+```
+
+### 🖥️ Cross-Platform Support
+
+**Windows**: Full support with arrow key navigation using `msvcrt`
+**macOS/Linux**: Native support with `termios` and `tty`
+**WSL**: Works seamlessly with Linux compatibility
+
+The application automatically detects your operating system and uses the appropriate input handling method.
 
 ## 🔧 Configuration
 
@@ -65,7 +85,9 @@ news-agent
    provider = claude
    claude_api_key = sk-ant-your-key-here
    ```
-3. Run: `python -m news_agent.main`
+3. Run:
+   - **Windows**: `python -m news_agent.main`
+   - **macOS/Linux**: `news-agent` or `python -m news_agent.main`
 
 #### 🏠 Local Setup with Ollama
 1. Install [Ollama](https://ollama.ai/)
@@ -75,7 +97,9 @@ news-agent
    provider = ollama
    model = qwen2:7b-instruct
    ```
-4. Run: `python -m news_agent.main`
+4. Run:
+   - **Windows**: `python -m news_agent.main`
+   - **macOS/Linux**: `news-agent` or `python -m news_agent.main`
 
 ### ⚙️ Built-in Settings Manager
 
@@ -520,4 +544,5 @@ All agents work with any provider - choose based on your needs for privacy, cost
 - **Consensus analysis** to verify scientific agreement
 - **Bilingual search capabilities** for comprehensive fact-checking
 - **Specialized agent workflow** for systematic verification
+
 
