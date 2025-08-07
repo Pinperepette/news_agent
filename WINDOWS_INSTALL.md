@@ -1,226 +1,439 @@
 # 🪟 Windows Installation Guide
 
-Complete guide to install and run the Terminal News Agent on Windows, starting from Python installation.
+**Complete setup guide for News Agent Pro on Windows**
 
----
+## 📋 **Prerequisites**
 
-## 📋 Prerequisites
+### **System Requirements**
+- Windows 10/11 (64-bit)
+- Python 3.8 or higher
+- 4GB RAM minimum (8GB recommended)
+- 2GB free disk space
 
-### 1. **Python Installation**
+### **Required Software**
+- [Python 3.8+](https://www.python.org/downloads/)
+- [Git](https://git-scm.com/download/win) (optional, for cloning)
+- [Windows Terminal](https://apps.microsoft.com/detail/9n0dx20hk701) (recommended)
 
-#### Option A: Download from python.org (Recommended)
-1. Go to [python.org/downloads](https://python.org/downloads)
-2. Download the latest Python version (3.8 or higher)
-3. **IMPORTANT**: During installation, check ✅ "Add Python to PATH"
-4. Verify installation by opening Command Prompt:
+## 🚀 **Installation Steps**
+
+### **Step 1: Install Python**
+
+1. **Download Python**:
+   - Go to [python.org](https://www.python.org/downloads/)
+   - Download Python 3.8 or higher
+   - **IMPORTANT**: Check "Add Python to PATH" during installation
+
+2. **Verify Installation**:
    ```cmd
    python --version
    pip --version
    ```
 
-#### Option B: Microsoft Store
-1. Open Microsoft Store
-2. Search for "Python"
-3. Install the latest version
-4. Verify installation as above
+### **Step 2: Clone/Download Repository**
 
-### 2. **Git Installation**
-1. Go to [git-scm.com/download/win](https://git-scm.com/download/win)
-2. Download and install Git for Windows
-3. Use default settings during installation
-4. Verify installation:
-   ```cmd
-   git --version
-   ```
-
----
-
-## 🚀 Installation Steps
-
-### Step 1: Clone the Repository
+**Option A: Using Git (Recommended)**
 ```cmd
-git clone https://github.com/Pinperepette/news_agent.git
+git clone https://github.com/your-repo/news_agent.git
 cd news_agent
 ```
 
-### Step 2: Install Dependencies
+**Option B: Manual Download**
+- Download ZIP from GitHub
+- Extract to desired folder
+- Open Command Prompt in the folder
+
+### **Step 3: Install Dependencies**
+
 ```cmd
+# Install the package in development mode
 pip install -e .
+
+# Or install requirements directly
+pip install -r requirements.txt
 ```
 
-### Step 3: Configure the Application
+### **Step 4: Configure API Keys**
 
-#### Quick Setup with Claude (Recommended)
-1. Get your Claude API key from [console.anthropic.com](https://console.anthropic.com/)
-2. Edit `news_agent/settings.ini`:
+1. **Copy configuration template**:
+   ```cmd
+   copy settings.ini.example settings.ini
+   ```
+
+2. **Edit settings.ini** with your API keys (see detailed setup below)
+
+## 🔑 **Detailed API Setup Guide**
+
+### **🤖 AI Providers**
+
+#### **OpenAI (Paid - Cloud)**
+1. **Get API Key**: Go to [platform.openai.com](https://platform.openai.com)
+2. **Sign up/Login**: Create account or login
+3. **Add Payment Method**: Credit card required
+4. **Get API Key**: Go to "API Keys" → "Create new secret key"
+5. **Configure**:
    ```ini
+   [AI]
+   provider = openai
+   openai_api_key = sk-your-key-here
+   openai_model = gpt-4
+   ```
+
+#### **Claude (Paid - Cloud)**
+1. **Get API Key**: Go to [console.anthropic.com](https://console.anthropic.com)
+2. **Sign up/Login**: Create account or login
+3. **Add Payment Method**: Credit card required
+4. **Get API Key**: Go to "API Keys" → "Create key"
+5. **Configure**:
+   ```ini
+   [AI]
    provider = claude
    claude_api_key = sk-ant-your-key-here
+   claude_model = claude-3-sonnet-20240229
    ```
 
-#### Local Setup with Ollama
-1. Install [Ollama](https://ollama.ai/) for Windows
-2. Open Command Prompt and run:
-   ```cmd
-   ollama pull qwen2:7b-instruct
-   ```
-3. Edit `news_agent/settings.ini`:
+#### **Ollama (Free - Local)**
+1. **Install Ollama**: Download from [ollama.ai](https://ollama.ai)
+2. **Start Ollama**: Open Command Prompt and run `ollama serve`
+3. **Download Model**: `ollama pull qwen2:7b-instruct`
+4. **Configure**:
    ```ini
+   [AI]
    provider = ollama
    model = qwen2:7b-instruct
    ```
 
-### Step 4: Run the Application
+### **🔍 News Verification APIs (Optional)**
+
+#### **SerpAPI (Paid - Web Search)**
+1. **Get API Key**: Go to [serpapi.com](https://serpapi.com)
+2. **Sign up**: Create account
+3. **Add Payment Method**: Credit card required
+4. **Get API Key**: Dashboard → "API Key"
+5. **Configure**:
+   ```ini
+   [News]
+   serpapi_key = your-serpapi-key
+   ```
+
+#### **ScrapingDog (Paid - Content Extraction)**
+1. **Get API Key**: Go to [scrapingdog.com](https://scrapingdog.com)
+2. **Sign up**: Create account
+3. **Add Payment Method**: Credit card required
+4. **Get API Key**: Dashboard → "API Key"
+5. **Configure**:
+   ```ini
+   [News]
+   scrapingdog_api_key = your-scrapingdog-key
+   ```
+
+### **💰 Pricing Information**
+
+#### **OpenAI**
+- **GPT-4**: ~$0.03 per 1K tokens
+- **GPT-3.5**: ~$0.002 per 1K tokens
+- **Free Tier**: $5 credit for new users
+
+#### **Claude**
+- **Claude 3 Sonnet**: ~$0.015 per 1K tokens
+- **Claude 3 Haiku**: ~$0.0025 per 1K tokens
+- **Free Tier**: $5 credit for new users
+
+#### **SerpAPI**
+- **Starter**: $50/month for 5,000 searches
+- **Basic**: $100/month for 12,500 searches
+- **Pro**: $250/month for 35,000 searches
+
+#### **ScrapingDog**
+- **Starter**: $29/month for 1,000 requests
+- **Basic**: $99/month for 5,000 requests
+- **Pro**: $299/month for 20,000 requests
+
+#### **Ollama**
+- **Free**: No cost, runs locally
+- **Hardware**: Requires 8GB+ RAM for good performance
+
+### **⚙️ Complete Configuration Example**
+
+```ini
+[AI]
+provider = openai
+openai_api_key = sk-your-openai-key-here
+openai_model = gpt-4
+
+[News]
+serpapi_key = your-serpapi-key
+scrapingdog_api_key = your-scrapingdog-key
+
+[General]
+default_language = en
+articles_per_page = 15
+search_timeout = 30
+enable_analytics = true
+```
+
+## 🎮 **How to Use**
+
+### **Launch the Application**
+
 ```cmd
+# From the project directory
 python -m news_agent.main
 ```
 
----
+### **Navigation Controls**
 
-## 🔧 Configuration Options
+#### **Main Menu**
+- **Arrow Keys**: Navigate between options
+- **Enter**: Select option
+- **q**: Quit application
 
-### AI Providers
+#### **Article List**
+- **↑↓**: Navigate between articles
+- **Enter**: Open selected article
+- **n**: Next page
+- **p**: Previous page
+- **o**: Open article in browser
+- **v**: Critical analysis
+- **c**: Configuration
+- **q**: Quit
 
-#### Claude (Recommended for best results)
+#### **Analysis Mode**
+- **1**: Analyze selected article
+- **2**: Custom text analysis
+- **3**: URL analysis
+- **0**: Back to main menu
+
+### **LLM Agents Menu (a)**
+1. **Summary**: Quick factual summary using full article content
+2. **Implications**: Social, economic, political consequences
+3. **Theory/Scenario**: Complex scenarios and connections
+4. **Universal Analysis**: Multi-thematic framework for complex topics
+5. **All Agents**: Run all agents in sequence
+
+## 🤖 **AI Agents Overview**
+
+### **🔬 Scientific Agent**
+- **Purpose**: Evaluates research methodology and scientific studies
+- **Focus**: 
+  - Access to original data vs. reconstructions
+  - Experimental protocol rigor
+  - Instrumentation quality
+  - Peer review status
+  - Replicability of methods
+
+### **🏛️ Political Agent**
+- **Purpose**: Analyzes political statements and government sources
+- **Focus**:
+  - Official declarations
+  - Government communications
+  - Political party statements
+  - Institutional sources
+
+### **💻 Technology Agent**
+- **Purpose**: Verifies tech announcements and innovations
+- **Focus**:
+  - Official company announcements
+  - Patent information
+  - Technical documentation
+  - Industry expert opinions
+
+### **💰 Economic Agent**
+- **Purpose**: Checks financial data and economic reports
+- **Focus**:
+  - Official financial reports
+  - Economic indicators
+  - Market data
+  - Expert economic analysis
+
+### **🌍 Universal Agent**
+- **Purpose**: General fact-checking and cross-verification
+- **Focus**:
+  - Multiple source verification
+  - Cross-reference checking
+  - General credibility assessment
+
+## 🌍 **Supported Languages**
+
+### **News Sources**
+- 🇮🇹 **Italian**: ANSA, Repubblica, Corriere della Sera
+- 🇺🇸 **English**: Reuters, BBC, CNN, TechCrunch
+- 🇫🇷 **French**: Le Monde, Le Figaro, Les Echos
+- 🇪🇸 **Spanish**: El País, El Mundo, ABC
+- 🇩🇪 **German**: Der Spiegel, Die Zeit, Süddeutsche
+
+### **Output Languages**
+- 🇮🇹 Italian
+- 🇺🇸 English
+- 🇫🇷 French
+- 🇩🇪 German
+- 🇪🇸 Spanish
+- 🇵🇹 Portuguese
+- 🇳🇱 Dutch
+- 🇷🇺 Russian
+- 🇨🇳 Chinese
+- 🇯🇵 Japanese
+- 🇰🇷 Korean
+
+## ⚙️ **Configuration**
+
+### **AI Provider Settings**
+
+#### **OpenAI Configuration**
 ```ini
-provider = claude
-claude_api_key = your-claude-api-key
-claude_model = claude-3-5-sonnet-20241022
-```
-
-#### OpenAI
-```ini
+[AI]
 provider = openai
 openai_api_key = your-openai-api-key
 openai_model = gpt-4
 ```
 
-#### Ollama (Local, no internet required)
+#### **Claude Configuration**
 ```ini
+[AI]
+provider = claude
+claude_api_key = your-claude-api-key
+claude_model = claude-3-sonnet-20240229
+```
+
+#### **Ollama Configuration (Local)**
+```ini
+[AI]
 provider = ollama
 model = qwen2:7b-instruct
 ```
 
-### News Verification (Optional)
-To enable news verification features:
+### **News Verification (Optional)**
 ```ini
+[News]
 serpapi_key = your-serpapi-key
+scrapingdog_api_key = your-scrapingdog-key
 ```
 
----
+### **General Settings**
+```ini
+[General]
+default_language = en
+articles_per_page = 15
+search_timeout = 30
+enable_analytics = true
+```
 
-## 🎮 How to Use
+## 🛠️ **Troubleshooting**
 
-### Navigation
-- **Arrow Keys**: Navigate between articles
-- **Enter**: Open selected article details
-- **n**: Next page
-- **p**: Previous page
-- **o**: Open article in browser
-- **s**: Global summary
-- **a**: LLM agents menu
-- **f**: Next set of articles
-- **c**: Configuration menu
-- **v**: News verification (if SerpAPI configured)
-- **q**: Quit
+### **Common Issues**
 
-### LLM Agents
-- **Summary**: Generate article summaries
-- **Implications**: Analyze consequences
-- **Theory**: Build scenarios and connections
-- **Universal Analysis**: Multi-thematic framework
-
-### News Verification
-- **Standard**: Basic fact-checking
-- **Advanced**: Step-by-step reasoning
-- **Multi-Agent**: Specialized AI collaboration
-- **Custom Text**: Verify any text you input
-
----
-
-## 🛠️ Troubleshooting
-
-### Common Issues
-
-#### "python is not recognized"
+#### **"python is not recognized"**
 - Python not added to PATH during installation
 - **Solution**: Reinstall Python and check "Add Python to PATH"
 
-#### "pip is not recognized"
+#### **"pip is not recognized"**
 - pip not installed or not in PATH
 - **Solution**: 
   ```cmd
   python -m ensurepip --upgrade
   ```
 
-#### Arrow keys not working
+#### **Arrow keys not working**
 - Windows Terminal or Command Prompt issue
 - **Solution**: Use Windows Terminal (available from Microsoft Store)
 
-#### "Module not found" errors
+#### **"Module not found" errors**
 - Dependencies not installed
 - **Solution**: 
   ```cmd
   pip install -e . --force-reinstall
   ```
 
-#### Ollama connection issues
+#### **Ollama connection issues**
 - Ollama not running
 - **Solution**: 
   ```cmd
   ollama serve
   ```
 
-### Performance Tips
+### **Performance Tips**
 
-#### For Ollama (Local AI)
+#### **For Ollama (Local AI)**
 - Use smaller models for faster responses
 - Close other applications to free up RAM
 - Consider using GPU acceleration if available
 
-#### For Cloud AI (Claude/OpenAI)
+#### **For Cloud AI (Claude/OpenAI)**
 - Ensure stable internet connection
-- API keys have usage limits, monitor your usage
+- Use appropriate model sizes for your needs
+- Monitor API usage and costs
 
----
+### **Getting Help**
 
-## 📁 File Structure
+1. **Check the main README**: [README.md](README.md)
+2. **Review configuration examples**
+3. **Check test files for usage examples**
+4. **Verify API keys are correct**
+5. **Ensure all dependencies are installed**
+
+## 🔧 **Advanced Configuration**
+
+### **Custom Model Settings**
+
+#### **Ollama Models**
+```ini
+[AI]
+provider = ollama
+model = llama2:7b
+# Available models: llama2:7b, llama2:13b, qwen2:7b, mistral:7b
 ```
-news_agent/
-├── news_agent/
-│   ├── main.py          # Main application
-│   ├── ui.py            # User interface
-│   ├── agents.py        # AI agents
-│   ├── verifier.py      # News verification
-│   ├── ai_providers.py  # AI provider management
-│   ├── multi_agents.py  # Multi-agent system
-│   ├── settings.ini     # Configuration
-│   └── settings.py      # Settings management
-├── setup.py             # Installation script
-├── README.md            # Main documentation
-└── WINDOWS_INSTALL.md   # This file
+
+#### **OpenAI Models**
+```ini
+[AI]
+provider = openai
+openai_model = gpt-4-turbo
+# Available models: gpt-4, gpt-4-turbo, gpt-3.5-turbo
 ```
 
+### **Analytics Configuration**
+```ini
+[Analytics]
+enable_tracking = true
+db_path = news_analytics.db
+export_format = json
+```
+
+### **Search Configuration**
+```ini
+[Search]
+timeout = 30
+max_results = 10
+cache_enabled = true
+cache_duration = 3600
+```
+
+## 📊 **Features Overview**
+
+### **Core Features**
+- ✅ **Multi-Agent Analysis**: Specialized AI agents for different domains
+- ✅ **Intelligent Routing**: Automatic agent selection based on content
+- ✅ **Multilingual Support**: Multiple languages for sources and output
+- ✅ **Rich Interface**: Beautiful terminal-based UI
+- ✅ **Analytics Tracking**: Complete session and performance monitoring
+- ✅ **Flexible Configuration**: Easy customization of all settings
+
+### **Analysis Capabilities**
+- 🔬 **Scientific Evaluation**: Research methodology assessment
+- 🏛️ **Political Analysis**: Government and policy verification
+- 💻 **Technology Verification**: Tech announcement validation
+- 💰 **Economic Fact-Checking**: Financial data verification
+- 🌍 **Universal Fact-Checking**: General news verification
+
+### **User Experience**
+- 🎨 **Modern UI**: Rich colors and intuitive navigation
+- ⌨️ **Keyboard Controls**: Full keyboard navigation
+- 📊 **Real-time Stats**: Live performance monitoring
+- 🔄 **Progress Indicators**: Visual feedback for operations
+- 📤 **Data Export**: Multiple export formats
+
 ---
 
-## 🔗 Useful Links
+**News Agent Pro** - Advanced AI-powered news analysis and fact-checking system for Windows
 
-- **Python**: [python.org](https://python.org)
-- **Git**: [git-scm.com](https://git-scm.com)
-- **Claude API**: [console.anthropic.com](https://console.anthropic.com)
-- **OpenAI API**: [platform.openai.com](https://platform.openai.com)
-- **Ollama**: [ollama.ai](https://ollama.ai)
-- **SerpAPI**: [serpapi.com](https://serpapi.com)
-- **Windows Terminal**: [Microsoft Store](https://apps.microsoft.com/detail/9n0dx20hk701)
-
----
-
-## 🆘 Need Help?
-
-If you encounter issues:
-1. Check this troubleshooting section
-2. Verify all prerequisites are installed
-3. Ensure you're using the correct commands for Windows
-4. Check that your API keys are valid and have sufficient credits
-
-The application is designed to work seamlessly on Windows with full arrow key navigation support! 🎯 
+For the complete documentation, see [README.md](README.md)

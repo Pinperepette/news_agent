@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 
 import requests
 import json
@@ -90,7 +89,6 @@ class FallbackAIProvider(AIProvider):
                 print(f"Tentativo {i+1}/{len(self.providers)} con {provider.__class__.__name__}...")
                 result = provider.generate(prompt, max_tokens)
                 
-                # Se non c'è errore, restituisci il risultato
                 if not result.startswith("[Errore"):
                     print(f"✅ Successo con {provider.__class__.__name__}")
                     return result
@@ -101,13 +99,11 @@ class FallbackAIProvider(AIProvider):
                 print(f"❌ Errore con {provider.__class__.__name__}: {e}")
                 continue
         
-        # Se tutti i provider falliscono
         return "[Errore: Tutti i provider AI sono non disponibili. Riprova più tardi.]"
 
 def create_ai_provider(provider: str, settings: dict) -> AIProvider:
     """Factory per creare il provider AI appropriato con fallback automatico"""
     
-    # Se è specificato un provider specifico, usa solo quello
     if provider == "ollama":
         model = settings.get("model", "qwen2:7b-instruct")
         url = settings.get("ollama_url", "http://localhost:11434/api/generate")
@@ -131,24 +127,23 @@ def create_ai_provider(provider: str, settings: dict) -> AIProvider:
         available_providers = []
         
         try:
-            if settings.get("ollama_url"):
-                model = settings.get("model", "qwen2:7b-instruct")
-                url = settings.get("ollama_url", "http://localhost:11434/api/generate")
-                available_providers.append(OllamaProvider(model, url))
+            url = settings.get("ollama_url", "http://localhost:11434/api/generate")
+            model = settings.get("ollama_model", "qwen2:7b-instruct")
+            available_providers.append(OllamaProvider(model, url))
         except:
             pass
         
         try:
-            if settings.get("openai_api_key"):
-                api_key = settings.get("openai_api_key")
+            api_key = settings.get("openai_api_key")
+            if api_key and api_key.strip():
                 model = settings.get("openai_model", "gpt-4")
                 available_providers.append(OpenAIProvider(api_key, model))
         except:
             pass
         
         try:
-            if settings.get("claude_api_key"):
-                api_key = settings.get("claude_api_key")
+            api_key = settings.get("claude_api_key")
+            if api_key and api_key.strip():
                 model = settings.get("claude_model", "claude-3-5-sonnet-20241022")
                 available_providers.append(ClaudeProvider(api_key, model))
         except:
