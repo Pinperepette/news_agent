@@ -1,218 +1,156 @@
-#!/usr/bin/env python
 
 import os
 import webbrowser
 import sys
 import select
-import tty
-import termios
+import platform
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
 from rich.text import Text
 
 def get_arrow_input():
-    """Gestisce l'input con supporto per le frecce su macOS/Linux"""
+    """Gestisce l'input con supporto per le frecce cross-platform"""
     console = Console()
     
-    try:
-        fd = sys.stdin.fileno()
-        old_settings = termios.tcgetattr(fd)
-        
+    if platform.system() == "Windows":
         try:
-            tty.setraw(sys.stdin.fileno())
+            import msvcrt
+            ch = msvcrt.getch()
             
-            ch = sys.stdin.read(1)
+            if ch in [b'\xe0', b'\x00']:
+                ch2 = msvcrt.getch()
+                if ch2 == b'H':
+                    return 'up'
+                elif ch2 == b'P':
+                    return 'down'
+                elif ch2 == b'M':
+                    return 'right'
+                elif ch2 == b'K':
+                    return 'left'
+            
+            return ch.decode('utf-8', errors='ignore').lower()
+            
+        except (ImportError, UnicodeDecodeError):
 
-            if ch == '\x1b':
+            return console.input().strip().lower()
+    
+    else:
+        try:
+            import tty
+            import termios
+            
+            fd = sys.stdin.fileno()
+            old_settings = termios.tcgetattr(fd)
+            
+            try:
+                tty.setraw(sys.stdin.fileno())
+                
+                ch = sys.stdin.read(1)
 
-                ch2 = sys.stdin.read(1)
-                if ch2 == '[':
-                    ch3 = sys.stdin.read(1)
-                    if ch3 == 'A':
-                        return 'up'
-                    elif ch3 == 'B':
-                        return 'down'
-                    elif ch3 == 'C':
-                        return 'right'
-                    elif ch3 == 'D':
-                        return 'left'
-            
-            return ch.lower()
-            
-        finally:
-            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-            
-    except (termios.error, OSError, AttributeError):
-        return console.input().strip().lower()
+                if ch == '\x1b':
+                    ch2 = sys.stdin.read(1)
+                    if ch2 == '[':
+                        ch3 = sys.stdin.read(1)
+                        if ch3 == 'A':
+                            return 'up'
+                        elif ch3 == 'B':
+                            return 'down'
+                        elif ch3 == 'C':
+                            return 'right'
+                        elif ch3 == 'D':
+                            return 'left'
+                
+                return ch.lower()
+                
+            finally:
+                termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+                
+        except (termios.error, OSError, AttributeError, ImportError):
+            return console.input().strip().lower()
 
-def show_table(articles, page, per_page, selected_idx=None, has_serpapi=False):
+def show_table(articles, page, per_page, selected_idx=None):
     os.system('clear' if os.name == 'posix' else 'cls')
-    table = Table(title=f"Google News (Pagina {page})", border_style="green")
-    table.add_column("#", justify="center", style="red", no_wrap=True)
-    table.add_column("Data", style="yellow", no_wrap=True)
-    table.add_column("Fonte", style="cyan", no_wrap=True)
-    table.add_column("Titolo", style="white")
+    table = Table(title=f"[bold blue]📰 Notizie da Multiple Fonti (Pagina {page})[/bold blue]")
+    table.add_column("#", justify="center", style="bold red", no_wrap=True)
+    table.add_column("Data", style="bold yellow", no_wrap=True)
+    table.add_column("Fonte", style="bold yellow", no_wrap=True)
+    table.add_column("Titolo", style="bold white")
     start = (page - 1) * per_page
     end = start + per_page
     for i, article in enumerate(articles[start:end], start=start):
         style = "bold white on blue" if selected_idx == i else ("none" if i % 2 == 0 else "dim")
-        table.add_row(str(i), article['date'][:16], article['author'], article['title'], style=style)
+        source = article.get('source', 'Sconosciuto')
+        table.add_row(str(i), article['date'][:16], source, article['title'], style=style)
     console = Console()
     console.print(table)
     
-    commands = "Comandi: ↑↓=naviga, Invio=apri articolo, n=avanti, p=indietro, numero=seleziona, o=apri link browser, s=sunto globale, a=agenti LLM, f=notizie successive, c=configurazione"
-
-    if has_serpapi:
-        commands += ", v=verifica"
-    
-    commands += ", q=esci"
+    commands = "Comandi: ↑↓=naviga, Invio=apri articolo, n=avanti, p=indietro, [0-9]=seleziona articolo, o=apri link browser, v=analisi critica, c=configurazione, q=esci"
     console.print(f"[i]{commands}[/i]")
 
 def show_article(article):
-    from .agents import get_article_full_content
-    
     os.system('clear' if os.name == 'posix' else 'cls')
     
-    content = get_article_full_content(article)
+    content = article.get('content', article.get('summary', 'Contenuto non disponibile'))
     
     article_panel = Panel(
-        f"[bold]{article['title']}[/bold]\n\n"
+        f"[bold blue]{article['title']}[/bold blue]\n\n"
         f"[dim]{article['date']}[/dim] [cyan]{article['author']}[/cyan]\n\n"
         f"{content}\n\n"
         f"[link={article['link']}]Leggi su Google News (premi 'o' per aprire)[/link]",
-        title="Articolo dettagliato",
-        border_style="white"
+        title="[bold green]Articolo dettagliato[/bold green]"
     )
     Console().print(article_panel)
 
 def show_verification_menu():
-    """Mostra il menu di verifica"""
+    """Mostra il menu di verifica semplificato"""
     console = Console()
     console.clear()
     console.print(Panel.fit(
-        "[bold blue]MENU VERIFICA[/bold blue]\n\n"
-        "[bold]ARTICOLO SELEZIONATO:[/bold]\n"
-        "1. Verifica standard\n"
-        "2. Validazione verità standard\n"
-        "3. Verifica multi-agente (sistema specializzato)\n"
-        "4. Verifica multi-agente AUTOMATICA (scelta intelligente)\n\n"
-        "[bold]TESTO PERSONALIZZATO:[/bold]\n"
-        "5. Verifica standard\n"
-        "6. Verifica avanzata (step-by-step)\n"
-        "7. Validazione verità avanzata\n"
-        "8. Verifica multi-agente AUTOMATICA\n"
+        "[bold blue]🔍 ANALISI[/bold blue]\n\n"
+        "[bold]Scegli cosa analizzare:[/bold]\n"
+        "1. [bold]Articolo selezionato[/bold] - Analizza l'articolo corrente\n"
+        "2. [bold]Testo personalizzato[/bold] - Inserisci un testo da analizzare\n"
+        "3. [bold]URL articolo[/bold] - Inserisci un link da analizzare\n"
         "0. Torna indietro\n\n"
-        "[yellow]Modalità di ricerca:[/yellow]\n"
-        "• [green]Veloce[/green]: 3 query, solo italiano, no scraping completo (~30s)\n"
-        "• [yellow]Media[/yellow]: 5 query, bilingue, scraping completo (~2min)\n"
-        "• [red]Grande[/red]: 10 query, bilingue, scraping completo (~5min)\n\n"
-        "[cyan]Tipi di analisi:[/cyan]\n"
-        "• [yellow]Standard[/yellow]: Analisi critica rapida (opzioni 1-2, 5-6)\n"
-        "• [blue]Avanzata[/blue]: Ragionamento step-by-step dettagliato (opzioni 6-7)\n"
-        "• [green]Multi-agente[/green]: Sistema specializzato con agenti collaborativi (opzioni 3-4, 8)\n"
-        "• [magenta]AUTOMATICA[/magenta]: L'AI sceglie il tipo di analisi più appropriato (opzioni 4, 8)\n",
-        title="🔍 Verifica Notizie",
-        border_style="blue"
+        "[yellow]Come funziona:[/yellow]\n"
+        "• L'AI ragiona come un analista esperto\n"
+        "• Rileva automaticamente il dominio e attiva l'agente specializzato:\n"
+        "  🔬 Scientifico - per studi e ricerche\n"
+        "  🏛️ Politico - per politica e governo\n"
+        "  💻 Tecnologico - per tecnologia e AI\n"
+        "  💰 Economico - per economia e finanza\n"
+        "  🌍 Universale - per notizie generali\n"
+        "• Genera query strategiche e valuta i risultati\n"
+        "• Fornisce un giudizio finale basato su evidenze\n",
+        title="[bold cyan]🧠 News Analyst[/bold cyan]"
     ))
     
     while True:
         try:
-            choice = console.input("\nSeleziona opzione (0-8): ").strip()
+            choice = console.input("\nSeleziona opzione (0-3): ").strip()
             if choice == "0":
-                return None, None
-            elif choice in ["1", "2", "3", "4", "5", "6", "7", "8"]:
-                # Chiedi la modalità
-                console.print("\n[yellow]Scegli modalità di ricerca:[/yellow]")
-                console.print("1. [green]Veloce[/green] (~30 secondi)")
-                console.print("2. [yellow]Media[/yellow] (~2 minuti)")
-                console.print("3. [red]Grande[/red] (~5 minuti)")
-                
-                mode_choice = console.input("\nModalità (1-3, default=2): ").strip()
-                
-                if mode_choice == "1":
-                    mode = "veloce"
-                elif mode_choice == "3":
-                    mode = "grande"
-                else:
-                    mode = "media"
-                
-                return choice, mode
+                return None
+            elif choice in ["1", "2", "3"]:
+                return choice
             else:
                 console.print("[red]Opzione non valida. Riprova.[/red]")
         except KeyboardInterrupt:
-            return None, None
+            return None
 
-def show_verification_results(verification_data, agent_analysis=None, model_name=None):
-    """Mostra i risultati della verifica"""
+def show_verification_results(analysis_result, model_name=None):
+    """Mostra i risultati dell'analisi"""
     os.system('clear' if os.name == 'posix' else 'cls')
     console = Console()
     
-    # Se è un'analisi multi-agente, formatta diversamente
-    if agent_analysis and "VERDETTO FINALE" in agent_analysis:
-        # Estrai le parti dell'analisi multi-agente
-        parts = agent_analysis.split("VERDETTO FINALE:")
-        if len(parts) > 1:
-            analysis_part = parts[0].strip()
-            verdict_part = "VERDETTO FINALE:" + parts[1].strip()
-            
-            # Mostra la parte di analisi
-            title = "🤖 Analisi Sistema Multi-Agente"
-            if model_name:
-                title += f" - {model_name}"
-            console.print(Panel(
-                analysis_part,
-                title=title,
-                border_style="yellow"
-            ))
-            
-            # Mostra il verdetto finale in un pannello separato
-            console.print(Panel(
-                verdict_part,
-                title="🎯 VERDETTO FINALE",
-                border_style="red"
-            ))
-        else:
-            # Fallback se non riesce a separare
-            title = "🤖 Analisi Sistema Multi-Agente"
-            if model_name:
-                title += f" - {model_name}"
-            console.print(Panel(
-                agent_analysis,
-                title=title,
-                border_style="yellow"
-            ))
-    else:
-        # Analisi standard
-        console.print(Panel(
-            verification_data.get('verification_summary', 'Nessun risultato'),
-            title="📊 Risultati Verifica",
-            border_style="cyan"
-        ))
-        
-        if agent_analysis:
-            title = "🤖 Analisi Agente LLM"
-            if model_name:
-                title += f" - {model_name}"
-            console.print(Panel(
-                agent_analysis,
-                title=title,
-                border_style="yellow"
-            ))
+    title = "[bold green]🧠 Analisi[/bold green]"
+    if model_name:
+        title += f" - {model_name}"
     
-    fact_check_results = verification_data.get('fact_check_results', [])
-    if fact_check_results and not fact_check_results[0].get('error'):
-        console.print("\n[bold green]🔗 Link Fact-Checking:[/bold green]")
-        for i, result in enumerate(fact_check_results[:3], 1):
-            console.print(f"{i}. {result.get('title', '')}")
-            console.print(f"   Link: {result.get('link', '')}")
-    
-    reliable_results = verification_data.get('reliable_sources_results', [])
-    if reliable_results and not reliable_results[0].get('error'):
-        console.print("\n[bold blue]📰 Fonti Affidabili:[/bold blue]")
-        for i, result in enumerate(reliable_results[:3], 1):
-            console.print(f"{i}. {result.get('title', '')} ({result.get('source', '')})")
-            console.print(f"   Link: {result.get('link', '')}")
+    console.print(Panel(
+        analysis_result,
+        title=title
+    ))
     
     console.input("\nPremi invio per tornare alla lista...")
 
@@ -224,6 +162,92 @@ def get_custom_text():
     
     text = console.input("Testo: ").strip()
     return text
+
+def get_article_url():
+    """Chiede all'utente di inserire un URL di articolo da analizzare"""
+    console = Console()
+    console.print("\n[bold yellow]🔗 Inserisci l'URL dell'articolo da analizzare:[/bold yellow]")
+    console.print("(Incolla il link e premi invio, oppure premi invio senza URL per annullare)")
+    
+    url = console.input("URL: ").strip()
+    return url
+
+def show_scraped_article(article):
+    """Mostra l'articolo estratto in una finestra con bordi"""
+    console = Console()
+    console.clear()
+    
+    content = clean_ansi_content(article.get('content', ''))
+    
+    preview = content[:500] + "..." if len(content) > 500 else content
+    
+    article_text = f"""
+[bold blue]{article.get('title', 'Titolo non disponibile')}[/bold blue]
+
+[dim]📅 Data: {article.get('date', 'Non disponibile')}[/dim]
+[dim]✍️ Autore: {article.get('author', 'Non disponibile')}[/dim]
+[dim]📰 Fonte: {article.get('source', 'Non disponibile')}[/dim]
+[dim]🔗 URL: {article.get('link', 'Non disponibile')}[/dim]
+
+{'='*60}
+
+[bold]PREVIEW DEL CONTENUTO:[/bold]
+{preview}
+
+{'='*60}
+
+[dim]Contenuto completo: {len(content)} caratteri[/dim]
+"""
+    
+    console.print(Panel(
+        article_text,
+        title="[bold green]📰 Articolo Estratto[/bold green]",
+        padding=(1, 2)
+    ))
+    
+    if len(content) > 500:
+        console.clear()
+        full_content = content[:3000] + "\n\n[... contenuto troncato ...]" if len(content) > 3000 else content
+        
+        full_article_text = f"""
+[bold blue]{article.get('title', 'Titolo non disponibile')}[/bold blue]
+
+[dim]📅 Data: {article.get('date', 'Non disponibile')}[/dim]
+[dim]✍️ Autore: {article.get('author', 'Non disponibile')}[/dim]
+[dim]📰 Fonte: {article.get('source', 'Non disponibile')}[/dim]
+
+{'='*60}
+
+{full_content}
+
+{'='*60}
+"""
+        
+        console.print(Panel(
+            full_article_text,
+            title="[bold green]📰 Contenuto Completo[/bold green]",
+            padding=(1, 2)
+        ))
+        console.input("\nPremi invio per continuare...")
+
+def show_analysis_animation(console):
+    """Mostra un'animazione durante l'analisi"""
+    console.print("\n[bold blue]🧠 Analisi in corso...[/bold blue]")
+    console.print("[yellow]🔍 Verifica in corso, attendere...[/yellow]\n")
+
+def clean_ansi_content(text):
+    """Rimuove caratteri di controllo ANSI dal testo"""
+    import re
+    
+    ansi_escape = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
+    text = ansi_escape.sub('', text)
+    
+    text = re.sub(r'[\x00-\x08\x0b\x0c\x0e-\x1f\x7f-\x9f]', '', text)
+    
+    text = re.sub(r'\s+', ' ', text)
+    text = re.sub(r'\n\s*\n', '\n\n', text)
+    
+    return text.strip()
 
 def show_settings_menu():
     """Mostra il menu di configurazione delle impostazioni"""
@@ -329,23 +353,23 @@ def edit_ai_model(provider):
     return None
 
 def edit_serpapi():
-    """Modifica la chiave SerpAPI"""
+    """Modifica la chiave ScrapingDog"""
     console = Console()
     console.clear()
     
     console.print(Panel.fit(
-        "[bold blue]🔍 CONFIGURAZIONE SERPAPI[/bold blue]\n\n"
-        "SerpAPI è necessaria per la verifica delle notizie.\n"
-        "Ottieni la tua chiave gratuita su: https://serpapi.com/\n\n"
+        "[bold blue]🔍 CONFIGURAZIONE SCRAPINGDOG[/bold blue]\n\n"
+        "ScrapingDog è necessario per la verifica delle notizie.\n"
+        "Ottieni la tua chiave gratuita su: https://scrapingdog.com/\n\n"
         "[yellow]Chiave attuale:[/yellow]",
-        title="Configurazione SerpAPI",
+        title="Configurazione ScrapingDog",
         border_style="blue"
     ))
     
     try:
         from .settings import load_settings
         settings = load_settings()
-        current_key = settings.get('serpapi_key', '')
+        current_key = settings.get('scrapingdog_api_key', '')
         if current_key:
             console.print(f"[green]✅ Configurata: {current_key[:10]}...[/green]")
         else:
@@ -353,13 +377,13 @@ def edit_serpapi():
     except:
         console.print("[red]❌ Errore nel caricamento[/red]")
     
-    console.print("\n[yellow]Inserisci la nuova chiave SerpAPI (o premi invio per annullare):[/yellow]")
+    console.print("\n[yellow]Inserisci la nuova chiave ScrapingDog (o premi invio per annullare):[/yellow]")
     new_key = console.input("Chiave: ").strip()
     
     if new_key:
         try:
-            save_settings_change('serpapi_key', new_key)
-            console.print("[green]✅ Chiave SerpAPI salvata con successo![/green]")
+            save_settings_change('scrapingdog_api_key', new_key)
+            console.print("[green]✅ Chiave ScrapingDog salvata con successo![/green]")
             console.print("[yellow]Riavvia l'applicazione per applicare le modifiche.[/yellow]")
         except Exception as e:
             console.print(f"[red]❌ Errore nel salvataggio: {e}[/red]")
@@ -404,14 +428,19 @@ def edit_api_keys():
 
 def edit_general_settings():
     """Modifica le impostazioni generali"""
+    from .settings import load_settings
+    
     console = Console()
     console.clear()
+    
+    settings = load_settings()
+    per_page = settings.get('articles_per_page', '15')
     
     console.print(Panel.fit(
         "[bold blue]⚙️ IMPOSTAZIONI GENERALI[/bold blue]\n\n"
         "1. Lingua (it/en)\n"
         "2. Argomento RSS\n"
-        "3. Articoli per pagina\n"
+        "3. Articoli per pagina (attuale: {per_page})\n"
         "0. Torna indietro\n\n"
         "[dim]Seleziona cosa modificare:[/dim]",
         title="Impostazioni Generali",
@@ -440,22 +469,36 @@ def show_current_settings():
     console = Console()
     console.clear()
     
+    provider = settings.get('provider', 'non impostato')
+    provider_display = f"{provider.upper()}"
+    
+    model_display = "non impostato"
+    if provider == 'ollama':
+        model_display = settings.get('ollama_model', 'non impostato')
+    elif provider == 'openai':
+        model_display = settings.get('openai_model', 'non impostato')
+    elif provider == 'claude':
+        model_display = settings.get('claude_model', 'non impostato')
+    
     settings_text = f"""
 [bold blue]📋 CONFIGURAZIONE ATTUALE[/bold blue]
 
-[bold]Provider AI:[/bold] {settings.get('provider', 'non impostato')}
-[bold]Modello Ollama:[/bold] {settings.get('ollama_model', 'non impostato')}
-[bold]Modello OpenAI:[/bold] {settings.get('openai_model', 'non impostato')}
-[bold]Modello Claude:[/bold] {settings.get('claude_model', 'non impostato')}
+[bold green]🤖 AI CONFIGURATION[/bold green]
+[bold]Provider Attivo:[/bold] {provider_display}
+[bold]Modello Attivo:[/bold] {model_display}
 [bold]URL Ollama:[/bold] {settings.get('ollama_url', 'non impostato')}
 
-[bold]Chiave OpenAI:[/bold] {'✅ Impostata' if settings.get('openai_api_key') else '❌ Non impostata'}
-[bold]Chiave Claude:[/bold] {'✅ Impostata' if settings.get('claude_api_key') else '❌ Non impostata'}
-[bold]Chiave SerpAPI:[/bold] {'✅ Impostata' if settings.get('serpapi_key') else '❌ Non impostata'}
+[bold yellow]🔑 API KEYS[/bold yellow]
+[bold]OpenAI:[/bold] {'✅ Impostata' if settings.get('openai_api_key') else '❌ Non impostata'}
+[bold]Claude:[/bold] {'✅ Impostata' if settings.get('claude_api_key') else '❌ Non impostata'}
+[bold]SerpAPI:[/bold] {'✅ Impostata' if settings.get('serpapi_key') else '❌ Non impostata'}
 
+[bold cyan]📰 NEWS CONFIGURATION[/bold cyan]
 [bold]Lingua:[/bold] {settings.get('lang', 'non impostata')}
 [bold]Argomento:[/bold] {settings.get('topic', 'non impostato')}
 [bold]Articoli per pagina:[/bold] {settings.get('articles_per_page', 'non impostato')}
+
+
 """
     
     console.print(Panel.fit(settings_text, title="Configurazione Attuale", border_style="green"))
@@ -471,7 +514,40 @@ def save_settings_change(key, value):
     settings[key] = value
     
     config = configparser.ConfigParser()
-    config['DEFAULT'] = settings
+    
+    default_section = {}
+    ai_section = {}
+    news_section = {}
+    sources_section = {}
+    
+    ai_keys = ['provider', 'ollama_model', 'openai_model', 'claude_model', 
+               'openai_api_key', 'claude_api_key', 'ollama_url']
+    
+    news_keys = ['lang', 'topic', 'articles_per_page', 'default_language', 
+                 'enable_multilingual']
+    
+
+    
+    sources_keys = ['quick_sources', 'default_output_language']
+    
+    for k, v in settings.items():
+        if k in ai_keys:
+            ai_section[k] = v
+        elif k in news_keys:
+            news_section[k] = v
+        elif k in sources_keys:
+            sources_section[k] = v
+        else:
+            default_section[k] = v
+    
+    if default_section:
+        config['DEFAULT'] = default_section
+    if ai_section:
+        config['AI'] = ai_section
+    if news_section:
+        config['News'] = news_section
+    if sources_section:
+        config['Sources'] = sources_section
     
     settings_file = os.path.join(os.path.dirname(__file__), 'settings.ini')
     
