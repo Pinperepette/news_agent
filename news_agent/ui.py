@@ -20,6 +20,7 @@ def get_arrow_input():
             
             if ch in [b'\xe0', b'\x00']:
                 ch2 = msvcrt.getch()
+                # Codici per le frecce su Windows
                 if ch2 == b'H':
                     return 'up'
                 elif ch2 == b'P':
@@ -143,9 +144,62 @@ def show_verification_results(analysis_result, model_name=None):
     os.system('clear' if os.name == 'posix' else 'cls')
     console = Console()
     
+<<<<<<< HEAD
     title = "[bold green]🧠 Analisi[/bold green]"
     if model_name:
         title += f" - {model_name}"
+=======
+
+    if agent_analysis and "VERDETTO FINALE" in agent_analysis:
+
+        parts = agent_analysis.split("VERDETTO FINALE:")
+        if len(parts) > 1:
+            analysis_part = parts[0].strip()
+            verdict_part = "VERDETTO FINALE:" + parts[1].strip()
+            
+            title = "🤖 Analisi Sistema Multi-Agente"
+            if model_name:
+                title += f" - {model_name}"
+            console.print(Panel(
+                analysis_part,
+                title=title,
+                border_style="yellow"
+            ))
+            
+
+            console.print(Panel(
+                verdict_part,
+                title="🎯 VERDETTO FINALE",
+                border_style="red"
+            ))
+        else:
+
+            title = "🤖 Analisi Sistema Multi-Agente"
+            if model_name:
+                title += f" - {model_name}"
+            console.print(Panel(
+                agent_analysis,
+                title=title,
+                border_style="yellow"
+            ))
+    else:
+
+        console.print(Panel(
+            verification_data.get('verification_summary', 'Nessun risultato'),
+            title="📊 Risultati Verifica",
+            border_style="cyan"
+        ))
+        
+        if agent_analysis:
+            title = "🤖 Analisi Agente LLM"
+            if model_name:
+                title += f" - {model_name}"
+            console.print(Panel(
+                agent_analysis,
+                title=title,
+                border_style="yellow"
+            ))
+>>>>>>> main
     
     console.print(Panel(
         analysis_result,

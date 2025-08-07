@@ -204,6 +204,13 @@ python -m news_agent.main
 - **3**: URL analysis
 - **0**: Back to main menu
 
+### **LLM Agents Menu (a)**
+1. **Summary**: Quick factual summary using full article content
+2. **Implications**: Social, economic, political consequences
+3. **Theory/Scenario**: Complex scenarios and connections
+4. **Universal Analysis**: Multi-thematic framework for complex topics
+5. **All Agents**: Run all agents in sequence
+
 ## 🤖 **AI Agents Overview**
 
 ### **🔬 Scientific Agent**
@@ -429,4 +436,4 @@ cache_duration = 3600
 
 **News Agent Pro** - Advanced AI-powered news analysis and fact-checking system for Windows
 
-For the complete documentation, see [README.md](README.md) 
+For the complete documentation, see [README.md](README.md)

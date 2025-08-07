@@ -1,4 +1,4 @@
-# �� News Agent Pro
+# 🚀 News Agent Pro
 
 **Advanced AI-Powered News Analysis & Fact-Checking System**
 
@@ -38,6 +38,35 @@
 - **Interactive Dashboard**: Real-time statistics
 - **Progress Indicators**: Visual feedback for long operations
 - **Keyboard Navigation**: Intuitive shortcuts and controls
+
+### 🔍 **Advanced News Verification System**
+- **Real news from Google News** in real-time (via RSS, no sketchy scraping)
+- **Interactive terminal table** with keyboard navigation, Rich styling, and focus highlight
+- **Multiple AI Providers**: Support for Ollama (local), OpenAI, and Claude
+- **Chained LLM agents:**
+  - *Summary Agent*: concise, factual abstract
+  - *Implications Agent*: in-depth analysis of consequences
+  - *Theory Agent*: connects dots and builds scenarios
+  - *Universal Analysis Agent*: multi-thematic framework for complex topics
+  - *(All agents can be triggered from the terminal UI!)*
+- **🔍 Advanced News Verification System** (with SerpAPI):
+  - Verify selected articles or custom text
+  - **Three verification modes**: Fast, Medium, Comprehensive
+  - **Standard and Advanced verification** with step-by-step reasoning
+  - Fact-checking search results with full content scraping
+  - **Bilingual search** (Italian + English sources)
+  - Reliable sources cross-reference
+  - AI-powered truth analysis with critical skepticism
+  - **Direct truth validation** with clear verdicts (VERA/FALSA/DUBBIA)
+- **⚙️ Built-in Settings Manager**: Modify all configuration directly from UI
+- **Full article content scraping** for comprehensive analysis
+- **Open article in browser** with one key
+- **Multi-language** and Google News topic filtering (configurable in settings)
+- **No cloud required:**
+  - 100% local processing with Ollama, no external APIs needed
+  - Cloud options available for higher quality analysis
+- **Designed for hacking/extending:** config/code separation, easy to customize
+- **Cross-Platform Support**: Works on Windows, macOS, Linux, and WSL
 
 ## 📦 **Installation**
 
@@ -302,6 +331,13 @@ enable_analytics = true
 - **3**: URL analysis
 - **0**: Back to main menu
 
+### **LLM Agents Menu (a)**
+1. **Summary**: Quick factual summary using full article content
+2. **Implications**: Social, economic, political consequences
+3. **Theory/Scenario**: Complex scenarios and connections
+4. **Universal Analysis**: Multi-thematic framework for complex topics
+5. **All Agents**: Run all agents in sequence
+
 ## ⚙️ **Configuration**
 
 ### **AI Provider Settings**
@@ -321,6 +357,31 @@ enable_analytics = true
 - Number of results per page
 - Search timeout
 - Cache settings
+
+### **📰 SELECTED ARTICLE:**
+1. **Standard Verification**: Basic critical analysis of selected article
+2. **Standard Truth Validation**: Direct truth validation with confidence level
+3. **Multi-Agent System** 🤖: **NEW** - Complete analysis with 6 specialized agents
+
+### **📝 CUSTOM TEXT:**
+4. **Standard Verification**: Basic critical analysis of custom text
+5. **Advanced Verification (Step-by-Step)**: Detailed analysis with structured reasoning
+6. **Advanced Truth Validation**: Advanced truth validation with complex analysis
+
+### **🤖 Multi-Agent System (Option 3):**
+The most comprehensive verification system using 6 specialized agents:
+
+- **🔍 Investigator Agent**: Finds and collects key information
+- **📊 Methodological Analyst Agent**: Evaluates scientific studies
+- **🎯 Verifier Agent**: Checks specific facts
+- **⚖️ Judge Agent**: Analyzes bias and conflicts of interest
+- **🌐 Consensus Agent**: Analyzes scientific consensus
+- **🧠 Synthesizer Agent**: Combines all results for final verdict
+
+### **⚡ Verification Modes:**
+- **Fast** (~30 sec): Quick fact-checking, basic sources, Italian only
+- **Medium** (~2 min): Balanced approach, bilingual sources, full scraping
+- **Comprehensive** (~5 min): Comprehensive analysis, complete bilingual sources
 
 ## 🔧 **Technical Architecture**
 
