@@ -1,18 +1,16 @@
-#!/usr/bin/env python
 
 import configparser
 from pathlib import Path
 
 def load_settings(config_file=None):
     if config_file is None:
-        # Cerca il file settings.ini in diversi percorsi
         possible_paths = [
+            Path.cwd() / "settings.ini",  # Percorso dalla directory corrente (root)
             Path(__file__).parent / "settings.ini",  # Percorso relativo al modulo
             Path.cwd() / "news_agent" / "settings.ini",  # Percorso dalla directory corrente
             Path.home() / ".news_agent" / "settings.ini",  # Percorso home
         ]
         
-        # Usa il primo file che esiste e ha una serpapi_key non vuota
         for path in possible_paths:
             if path.exists():
                 cp = configparser.ConfigParser()
@@ -21,7 +19,6 @@ def load_settings(config_file=None):
                     config_file = path
                     break
         
-        # Se non troviamo un file con serpapi_key, usa il primo disponibile
         if config_file is None:
             for path in possible_paths:
                 if path.exists():
@@ -30,4 +27,19 @@ def load_settings(config_file=None):
     
     cp = configparser.ConfigParser()
     cp.read(config_file)
-    return cp['DEFAULT']
+    
+    settings = {}
+    
+    if 'DEFAULT' in cp:
+        settings.update(cp['DEFAULT'])
+    
+    if 'AI' in cp:
+        settings.update(cp['AI'])
+    
+    if 'News' in cp:
+        settings.update(cp['News'])
+    
+    if 'Sources' in cp:
+        settings.update(cp['Sources'])
+    
+    return settings
